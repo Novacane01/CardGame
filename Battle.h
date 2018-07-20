@@ -1,21 +1,30 @@
 #pragma once
+#include "GameManager.h"
 #include "Player.h"
+#include <map>
+#include <iostream>
 
 class Battle {
 public:
 	enum class PHASE{DRAW, MAIN, BATTLE, MAIN2, END };
 	Battle(Player *, Player *);
 	void Start();
-	void Draw(std::vector<Card>*,std::vector<Card>*);
+	void Draw(Player *);
 	void nextPhase();
+	void playCard(Player *, Card &, int);
 	void switchTurn();
+	void displayCards(Player *);
+	void displayField(Player *);
+	void initBattle();
 private:
 	PHASE phase;
 	const int maxHand = 7;
 	const int initCardstoDraw = 6;
 	int turn = 0;
-	int playerTurn[2] = {1,2};
-	Player* players[2];
+	Player * const player1;
+	Player * const player2;
+	Player * currentPlayer;
+	Player * opposingPlayer;
 	bool gameIsWon = false;
 };
 

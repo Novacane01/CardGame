@@ -1,10 +1,13 @@
 #include "Card.h"
+#include "Effects.h"
 
-Card::Card():type(Card::TYPE::NONE),name("None"),rarity(Card::RARITY::NONE),cost(-1),description("NONE") {
-
-}
-Card::Card(Card::TYPE type, std::string name, Card::RARITY rarity, int cost, std::string description):type(type),name(name), rarity(rarity),cost(cost),description(description) {
+Card::Card():type(Card::TYPE::NONE),name("None"),rarity(Card::RARITY::NONE),cost(-1),description("NONE"),effect(EFFECT::NONE) {
 	
+}
+Card::Card(Card::TYPE type, std::string name, Card::RARITY rarity, int cost, std::string description, Card::EFFECT effect):type(type),name(name), rarity(rarity),cost(cost),description(description),effect(effect) {
+	card.setSize(sf::Vector2f(125,200));
+	card.setOrigin(card.getSize().x / 2, card.getSize().y/2);
+	card.setPosition(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 }
 
 int Card::getCost() const {
@@ -31,8 +34,20 @@ void Card::playEffect() {
 
 }
 
+void Card::Update(sf::RenderWindow &window, float dt) {
+	Draw(window);
+}
+
+void Card::Draw(sf::RenderWindow &window) {
+	window.draw(card);
+}
+
+Card::EFFECT Card::getEffect() const {
+	return effect;
+}
+
 //***************************//
-CreatureCard::CreatureCard(std::string name, Card::RARITY rarity, int cost, int attack, int health, std::string description, Card::TYPE type):Card(type,name,rarity,cost, description) {
+CreatureCard::CreatureCard(std::string name, Card::RARITY rarity, int cost, int attack, int health, std::string description, Card::EFFECT effect, Card::TYPE type):Card(type,name,rarity,cost, description, effect) {
 	this->attack = attack;
 	this->health = health;
 }
@@ -54,16 +69,15 @@ int CreatureCard::getHealth() const {
 }
 
 //*************************//
-SpellCard::SpellCard(std::string name, Card::RARITY rarity, int cost, std::string description, Card::TYPE type):Card(type, name, rarity, cost, description) {
+SpellCard::SpellCard(std::string name, Card::RARITY rarity, int cost, std::string description, Card::EFFECT effect, Card::TYPE type):Card(type, name, rarity, cost, description, effect) {
 
 }
 
 //**************************//
-MagmaWarrior::MagmaWarrior(std::string name, Card::RARITY rarity, int cost, int attack, int health, std::string description) : CreatureCard(name, rarity, cost, attack, health, description) {
+MagmaWarrior::MagmaWarrior(std::string name, Card::RARITY rarity, int cost, int attack, int health, std::string description, Card::EFFECT effect) : CreatureCard(name, rarity, cost, attack, health, description, effect) {
 
 }
 
 void MagmaWarrior::playEffect() {
-	setAttack(getAttack() + 1);
-	setHealth(getHealth() + 1);
+	Effects::boostStats(this, 1, 1);
 }

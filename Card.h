@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-#include "SFML\Graphics.hpp"
+#include "GameManager.h"
+
 
 class Card {
 
@@ -9,29 +10,37 @@ public:
 		return *this;
 	}
 	Card();
-	const enum class RARITY { NONE, UNCOMMON, COMMON, RARE, LEGENDARY };
-	const enum class TYPE { NONE, CREATURE, SPELL };
-	Card(Card::TYPE, std::string, Card::RARITY, int, std::string);
+	enum class RARITY { NONE, UNCOMMON, COMMON, RARE, LEGENDARY };
+	enum class TYPE { NONE, CREATURE, SPELL };
+	enum class EFFECT { NONE, OFE, GAINLIFE, STATBOOST, DRAW, DISCARD, SHUFFLE };
+	Card(Card::TYPE, std::string, Card::RARITY, int, std::string, Card::EFFECT);
 	int getCost() const;
 	Card::RARITY getRarity() const;
 	Card::TYPE getType() const;
 	std::string getName() const;
 	std::string getDescription() const;
+	Card::EFFECT getEffect() const;
 	virtual void playEffect();
+	virtual void Update(sf::RenderWindow &, float);
+	void Draw(sf::RenderWindow &);
+	void displayCardInfo(); 
 	//~Card();
 
 private:
 	const RARITY rarity;
 	const TYPE type;
+	const EFFECT effect;
 	const int cost;
 	const std::string name;
 	const std::string description;
+	sf::RectangleShape cardInfo;
 	
+	sf::RectangleShape card;
 };
 
 class CreatureCard:public Card {
 public:
-	CreatureCard(std::string,Card::RARITY,int, int, int, std::string, Card::TYPE = Card::TYPE::CREATURE);
+	CreatureCard(std::string,Card::RARITY,int, int, int, std::string, Card::EFFECT, Card::TYPE = Card::TYPE::CREATURE);
 	void setAttack(int);
 	void setHealth(int);
 	int getAttack() const;
@@ -43,7 +52,7 @@ private:
 
 class SpellCard :public Card {
 public:
-	SpellCard(std::string, Card::RARITY, int, std::string, Card::TYPE = Card::TYPE::SPELL);
+	SpellCard(std::string, Card::RARITY, int, std::string, Card::EFFECT, Card::TYPE = Card::TYPE::SPELL);
 private:
 
 };
@@ -55,7 +64,8 @@ public:
 	int cost = 3,
 	int attack = 4,
 	int health = 4,
-	std::string description = "When Magma Warrior enteres the battlefield add a +1/+1 to it.");
+	std::string description = "When Magma Warrior enteres the battlefield add a +1/+1 to it.",
+	EFFECT effect = Card::EFFECT::OFE);
 	void playEffect();
 private:
 
