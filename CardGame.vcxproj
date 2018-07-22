@@ -126,6 +126,7 @@
     <ClCompile Include="Battle.cpp" />
     <ClCompile Include="Card.cpp" />
     <ClCompile Include="Effects.cpp" />
+    <ClCompile Include="Field.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="Battle.h" />
     <ClInclude Include="Card.h" />
     <ClInclude Include="Effects.h" />
+    <ClInclude Include="Field.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>

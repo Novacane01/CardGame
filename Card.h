@@ -20,10 +20,14 @@ public:
 	std::string getName() const;
 	std::string getDescription() const;
 	Card::EFFECT getEffect() const;
+	sf::RectangleShape* getCard();
 	virtual void playEffect();
 	virtual void Update(sf::RenderWindow &, float);
 	void Draw(sf::RenderWindow &);
-	void displayCardInfo(); 
+	static void displayCardInfo(sf::RenderWindow *, Card *); 
+	static void updateCardInfo(sf::RenderWindow *, Card *card = 0);
+	static sf::RectangleShape cardInfoDisplay;
+	bool viewing;
 	//~Card();
 
 private:
@@ -33,10 +37,13 @@ private:
 	const int cost;
 	const std::string name;
 	const std::string description;
-	sf::RectangleShape cardInfo;
-	
-	sf::RectangleShape card;
+
+	sf::RectangleShape card = sf::RectangleShape(sf::Vector2f(125, 200));
+	/*sf::Sprite cardArt;
+	sf::Texture texture;*/
+	sf::Text text;
 };
+
 
 class CreatureCard:public Card {
 public:
@@ -64,7 +71,7 @@ public:
 	int cost = 3,
 	int attack = 4,
 	int health = 4,
-	std::string description = "When Magma Warrior enteres the battlefield add a +1/+1 to it.",
+	std::string description = "When Magma Warrior enters the battlefield add a +1/+1 counter to it.",
 	EFFECT effect = Card::EFFECT::OFE);
 	void playEffect();
 private:

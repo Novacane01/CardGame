@@ -13,6 +13,8 @@ public:
 	void Start();
 	int getWindowWidth() const;
 	int getWindowHeight() const;
+
+	static sf::Font font;
 	~GameManager();
 private:
 	sf::RenderWindow window;

@@ -2,8 +2,15 @@
 #include "Player.h"
 #include "Battle.h"
 
+sf::Font GameManager::font;
+
 GameManager::GameManager(int width, int height) {
 	window.create(sf::VideoMode(width, height),"Cards!");
+	if (font.loadFromFile("Fonts/light_pixel-7.ttf")) {
+	}
+	else {
+		LOG("COULD NOT LOAD FONT");
+	}
 }
 
 int GameManager::getWindowWidth() const {
@@ -23,8 +30,8 @@ void GameManager::Start() {
 		p1.addCardDeck(new MagmaWarrior);
 		p2.addCardDeck(new MagmaWarrior);
 	}
-	//Battle b(&p1, &p2);
-	//b.Start();
+	Battle b(&p1, &p2);
+	b.Start(&window);
 	std::cout << "Player Inventory Size: " << p1.getInventory()->size();
 	/*p1.removeCardInventory();
 	std::cout << "Player Inventory Size: " << p1.getInventory()->size();*/
@@ -37,9 +44,6 @@ void GameManager::Start() {
 			}
 		}
 		window.clear();
-		for (Card *c : *p1.getDeck()) {
-			c->Draw(window);
-		}
 		window.display();
 	}
 

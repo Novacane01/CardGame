@@ -1,0 +1,6 @@
+﻿  Battle.cpp
+c:\visual studio 2017\source\repos\cardgame-master\battle.cpp(46): warning C4018: '<': signed/unsigned mismatch
+c:\visual studio 2017\source\repos\cardgame-master\battle.cpp(55): warning C4018: '<': signed/unsigned mismatch
+c:\visual studio 2017\source\repos\cardgame-master\battle.cpp(144): warning C4018: '<': signed/unsigned mismatch
+c:\visual studio 2017\source\repos\cardgame-master\battle.cpp(219): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  CardGame.vcxproj -> C:\Visual Studio 2017\source\repos\CardGame-master\Debug\CardGame.exe
