@@ -1,16 +1,10 @@
 #include "Battle.h"
 
 Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player2) {
-	battleLogBox.setPosition(WINDOW_WIDTH - battleLogBox.getSize().x, 0);
-	battleLog.setFont(GameManager::font);
-	battleLog.setCharacterSize(10);
-	battleLog.setPosition(sf::Vector2f(battleLogBox.getPosition().x, battleLogBox.getPosition().y+20));
+
+	setUI();
 
 	Log("Starting Game...");
-	/*std::thread first(player1->updateField);
-	first.detach();
-	std::thread second(player2->updateField);
-	second.detach();*/
 
 	if ((float)rand() / RAND_MAX < .5f) {
 		currentPlayer = player1;
@@ -89,13 +83,14 @@ void Battle::Start(sf::RenderWindow *window) {
 							playCard(currentPlayer, highlightedCard, highlightedCardPos);
 						}
 					}
+					if (endTurnButton.getGlobalBounds().contains(window->mapPixelToCoords(sf::Vector2i(sf::Mouse::getPosition(*window))))) {
+						phase = PHASE::END;
+					}
 				}
 			}
 		}
 		Card::updateCardInfo(window, highlightedCard);
-		currentPlayer->drawHand(window);
-		currentPlayer->displayUI(window);
-		updateLog(window);
+		displayUI(window);
 		window->display();
 	}
 }
@@ -250,25 +245,7 @@ void Battle::initBattle() {
 			Log("MAIN PAHSE");
 			Log("Energy:" + std::to_string(currentPlayer->getEnergy()));
 			while (phase == PHASE::MAIN) {
-				Log("1. Play Card\n2. Battle\n3. End Turn");
-				int option;
-				std::cin >> option;
-				switch (option) {
-				case 1:
-					displayCards(currentPlayer);
-					break;
-				case 2:
-					if (currentPlayer->field.size() > 0) {
-						initBattle();
-					}
-					else {
-						Log("You have no creatures to attack with!");
-					}
-					break;
-				case 3:
-					phase = PHASE::END;
-					break;
-				}
+				sf::sleep(sf::seconds(.5f));
 			}
 		}
 		if (phase == PHASE::BATTLE) {
@@ -281,10 +258,28 @@ void Battle::initBattle() {
 	}
 }
 
-static void Update(sf::RenderWindow *window, float dt, Player *player) {
-	window->clear();
-	for (Card *c : player->hand) {
-		window->draw(*c->getCard());
-	}
-	window->display();
+//static void Update(sf::RenderWindow *window, float dt, Player *player) {
+//	window->clear();
+//	for (Card *c : player->hand) {
+//		window->draw(*c->getCard());
+//	}
+//	window->display();
+//}
+
+void Battle::setUI() {
+	battleLogBox.setPosition(WINDOW_WIDTH - battleLogBox.getSize().x, 0);
+	battleLog.setFont(GameManager::font);
+	battleLog.setCharacterSize(10);
+	battleLog.setPosition(sf::Vector2f(battleLogBox.getPosition().x, battleLogBox.getPosition().y + 20));
+	endTurnButton.setFont(GameManager::font);
+	endTurnButton.setString("End Turn");
+	endTurnButton.setCharacterSize(15);
+	endTurnButton.setPosition(sf::Vector2f(WINDOW_WIDTH - endTurnButton.findCharacterPos(8).x-50, WINDOW_HEIGHT / 2));
+}
+
+void Battle::displayUI(sf::RenderWindow *window) {
+	currentPlayer->drawHand(window);
+	currentPlayer->displayUI(window);
+	updateLog(window);
+	window->draw(endTurnButton);
 }
