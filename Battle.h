@@ -18,6 +18,7 @@ public:
 	void updateLog(sf::RenderWindow *);
 	void initBattle();
 	static void Update(float, Player *);
+	void Log(std::string);
 private:
 	PHASE phase;
 	const int maxHand = 7;
@@ -29,6 +30,7 @@ private:
 	Player * opposingPlayer;
 	bool gameIsWon = false;
 	sf::Text battleLog;
+	sf::RectangleShape battleLogBox = sf::RectangleShape(sf::Vector2f(200, 200));
 	std::string log;
 };
 

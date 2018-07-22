@@ -24,7 +24,7 @@ public:
 	virtual void playEffect();
 	virtual void Update(sf::RenderWindow &, float);
 	void Draw(sf::RenderWindow &);
-	static void displayCardInfo(sf::RenderWindow *, Card *); 
+	void setCardInfo(); 
 	static void updateCardInfo(sf::RenderWindow *, Card *card = 0);
 	static sf::RectangleShape cardInfoDisplay;
 	bool viewing;
@@ -41,7 +41,7 @@ private:
 	sf::RectangleShape card = sf::RectangleShape(sf::Vector2f(125, 200));
 	/*sf::Sprite cardArt;
 	sf::Texture texture;*/
-	sf::Text text;
+	sf::Text cardInfo;
 };
 
 

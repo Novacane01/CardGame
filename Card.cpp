@@ -16,10 +16,11 @@ Card::Card(Card::TYPE type, std::string name, Card::RARITY rarity, int cost, std
 	card.setOrigin(card.getSize().x / 2, card.getSize().y/2);
 	card.setPosition(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 	cardInfoDisplay.setFillColor(sf::Color(169,169,169,50));
-	text.setString(description);
-	text.setCharacterSize(15);
-	text.setFont(GameManager::font);
-	text.setPosition(0, cardInfoDisplay.getSize().y / 2);
+	cardInfo.setString(description);
+	cardInfo.setCharacterSize(15);
+	cardInfo.setFont(GameManager::font);
+	cardInfo.setPosition(cardInfoDisplay.getPosition().x+20, cardInfoDisplay.getSize().y / 2);
+	setCardInfo();
 }
 
 //Returns card cost
@@ -71,14 +72,30 @@ Card::EFFECT Card::getEffect() const {
 	return effect;
 }
 
-void Card::displayCardInfo(sf::RenderWindow *window, Card *card) {
-	window->draw(card->text);
+void Card::setCardInfo() {
+	std::string tempString = "";
+	std::string tempChars;
+	for (int i = 0, j = 0; j < description.size();i++, j++) {
+		tempChars += description[j];
+		if (description[j] == ' ' || j + 1 == description.size()) {
+			tempString += tempChars;
+			cardInfo.setString(tempString);
+			if (cardInfo.findCharacterPos(i).x >= cardInfoDisplay.getPosition().x + cardInfoDisplay.getSize().x - 20) {
+				tempString = tempString.substr(0, tempString.size() - tempChars.size());
+				tempString += "\n\n";
+				cardInfo.setString(tempString);
+				tempString += tempChars;
+				i += 2;
+			}
+			tempChars.clear();
+		}
+	}
 }
 
 void Card::updateCardInfo(sf::RenderWindow *window, Card *card) {
 	if (card) {
 		window->draw(cardInfoDisplay);
-		window->draw(card->text);
+		window->draw(card->cardInfo);
 	}
 }
 

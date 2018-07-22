@@ -1,12 +1,12 @@
 #include "Battle.h"
 
 Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player2) {
+	battleLogBox.setPosition(WINDOW_WIDTH - battleLogBox.getSize().x, 0);
 	battleLog.setFont(GameManager::font);
-	battleLog.setCharacterSize(15);
-	battleLog.setPosition(sf::Vector2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2));
+	battleLog.setCharacterSize(10);
+	battleLog.setPosition(sf::Vector2f(battleLogBox.getPosition().x, battleLogBox.getPosition().y+20));
 
-	LOG("Starting Game...");
-	log += "Starting Game...\n";
+	Log("Starting Game...");
 	/*std::thread first(player1->updateField);
 	first.detach();
 	std::thread second(player2->updateField);
@@ -15,14 +15,12 @@ Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player
 	if ((float)rand() / RAND_MAX < .5f) {
 		currentPlayer = player1;
 		opposingPlayer = player2;
-		LOG("Player 1 goes first.");
-		log += "Player 1 goes first.";
+		Log("Player 1 goes first.");
 	}
 	else {
 		currentPlayer = player2;
 		opposingPlayer = player1;
-		LOG("Player 2 goes first.");
-		log += "Player 2 goes first.";
+		Log("Player 2 goes first.");
 
 	}
 	player1->state = Player::STATE::BATTLE;
@@ -31,11 +29,33 @@ Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player
 	player2->setUI();
 }
 
+void Battle::Log(std::string string) {
+	std::string tempString = "";
+	std::string tempChars;
+	for (int i = 0, j = 0; j < string.size();i++, j++) {
+		tempChars += string[j];
+		if (string[j] == ' '||j+1==string.size()) {
+			tempString += tempChars;
+			battleLog.setString(tempString);
+			if (battleLog.findCharacterPos(i).x >= battleLogBox.getPosition().x + battleLogBox.getSize().x - 50) {
+				tempString = tempString.substr(0, tempString.size() - tempChars.size());
+				tempString += "\n\n";
+				battleLog.setString(tempString);
+				tempString += tempChars;
+				i += 2;
+			}
+			tempChars.clear();
+		}
+	}
+	log += tempString + "\n\n";
+}
+
 void Battle::Start(sf::RenderWindow *window) {
 	std::thread(&Battle::initBattle,this).detach();
 	Card * highlightedCard = nullptr;
 	int highlightedCardPos = -1;
 	while (window->isOpen()) {
+		sf::sleep(sf::seconds(0.1f));
 		window->clear();
 		sf::Event event;
 		while (window->pollEvent(event)) {
@@ -65,7 +85,9 @@ void Battle::Start(sf::RenderWindow *window) {
 			if (event.type == sf::Event::MouseButtonPressed) {
 				if (event.mouseButton.button == sf::Mouse::Left) {
 					if (highlightedCard&&phase==PHASE::MAIN) {
-						playCard(currentPlayer,highlightedCard,highlightedCardPos);
+						if (currentPlayer->getEnergy() >= highlightedCard->getCost()) {
+							playCard(currentPlayer, highlightedCard, highlightedCardPos);
+						}
 					}
 				}
 			}
@@ -107,27 +129,28 @@ void Battle::playCard(Player *player, Card *card, int pos) {
 	if (card->getType() == Card::TYPE::CREATURE) {
 		player->field.push_back(card);
 		player->hand.erase(player->hand.begin() + pos);
-		LOG(player->getName() + " has summoned " + card->getName() + " to the field!");
+		Log(player->getName() + " has summoned " + card->getName() + " to the field!");
 		if (card->getEffect() == Card::EFFECT::OFE) {
-			LOG(card->getName() + " triggered its special ability!");
+			Log(card->getName() + " triggered its special ability!");
 			card->playEffect();
 		}
 	}
 	else if(card->getType() == Card::TYPE::SPELL){
 		card->playEffect();
-		LOG(player->getName() + " played " + card->getName());
+		Log(player->getName() + " played " + card->getName());
 	}
+	player->setEnergy(player->getEnergy() - card->getCost());
 	currentPlayer->updateHand();
 }
 
 //Switches current player
 void Battle::switchTurn() {
 	if (currentPlayer == player1) {
-		LOG("Player 2's turn");
+		Log("Player 2's turn");
 		currentPlayer = player2;
 	}
 	else if (currentPlayer == player2) {
-		LOG("Player 1's turn");
+		Log("Player 1's turn");
 		currentPlayer = player1;
 	}
 }
@@ -135,9 +158,9 @@ void Battle::switchTurn() {
 //Displays cards in current
 void Battle::displayCards(Player *player) {
 	for (unsigned i = 0;i < player->hand.size();i++) {
-		LOG(std::to_string(i + 1) + ". " + player->hand[i]->getName());
+		Log(std::to_string(i + 1) + ". " + player->hand[i]->getName());
 	}
-	LOG("-1. Cancel");
+	Log("-1. Cancel");
 	while (true) {
 		int option;
 		std::cin >> option;
@@ -148,7 +171,7 @@ void Battle::displayCards(Player *player) {
 				player->setEnergy(player->getEnergy() - cardChoice->getCost());
 			}
 			else {
-				LOG("You don't have enough energy to play this card!")
+				Log("You don't have enough energy to play this card!");
 			}
 		}
 		else if (option == -1) {
@@ -159,25 +182,25 @@ void Battle::displayCards(Player *player) {
 
 //Displays Field
 void Battle::displayField(Player *player) {
-	LOG("FIELD:");
-	LOG("Player 1: ");
+	Log("FIELD:");
+	Log("Player 1: ");
 	for (unsigned i = 0;i < currentPlayer->field.size();i++) {
 		if (CreatureCard *card = dynamic_cast<CreatureCard*>(currentPlayer->field[i])) {
-			LOG(std::to_string(i + 1) +". " + card->getName() + " " +  std::to_string(card->getAttack()) + "/" + std::to_string(card->getHealth()));
+			Log(std::to_string(i + 1) +". " + card->getName() + " " +  std::to_string(card->getAttack()) + "/" + std::to_string(card->getHealth()));
 		}
 	}
-	LOG("Select a monster to attack with.");
+	Log("Select a monster to attack with.");
 	int option;
 	std::cin >> option;
 	Card *temp = currentPlayer->field[option - 1];
-	LOG("Player 2: ");
+	Log("Player 2: ");
 	if (player2->field.size() > 0) {
 		for (unsigned i = 0;i < opposingPlayer->field.size();i++) {
 			if (CreatureCard *card = dynamic_cast<CreatureCard*>(opposingPlayer->field[i])) {
-				LOG(std::to_string(i + 1) + card->getName());
+				Log(std::to_string(i + 1) + card->getName());
 			}
 		}
-		LOG("Select a target.");
+		Log("Select a target.");
 		std::cin >> option;
 		Card *tempTarget = opposingPlayer->field[option - 1];
 	}
@@ -194,10 +217,10 @@ void Battle::updateLog(sf::RenderWindow *window) {
 void Battle::initBattle() {
 	player1->tempDeck = *player1->getDeck();
 	player2->tempDeck = *player2->getDeck();
-	LOG("Decks initialized.");
+	Log("Decks initialized.");
 
 	//***Initial Draw Phase***//
-	LOG("Switching to Initial Draw Phase...");
+	Log("Switching to initial draw phase...");
 	phase = PHASE::DRAW;
 
 
@@ -205,29 +228,29 @@ void Battle::initBattle() {
 		Draw(player1);
 		Draw(player2);
 	}
-	LOG("Cards added to hand.");
+	Log("Cards added to hand.");
 
 	//***Incrementing Phase***//
-	LOG("Switching to Main Phase...");
+	Log("Switching to main phase...");
 	nextPhase();
 
 	//***Battle Loop***//
 	while (!gameIsWon) {
 
-		LOG("Turn: " + std::to_string(++turn));
+		Log("Turn: " + std::to_string(++turn));
 
 		currentPlayer->setEnergy(ceil((float)turn / 2));
 
 		if (phase == PHASE::DRAW) {
-			LOG("Drawing Card...");
+			Log("Drawing card...");
 			Draw(currentPlayer);
 			nextPhase();
 		}
 		if (phase == PHASE::MAIN) {
-			LOG("MAIN PAHSE");
-			LOG("Energy:" + std::to_string(currentPlayer->getEnergy()));
+			Log("MAIN PAHSE");
+			Log("Energy:" + std::to_string(currentPlayer->getEnergy()));
 			while (phase == PHASE::MAIN) {
-				LOG("1. Play Card\n2. Battle\n3. End Turn");
+				Log("1. Play Card\n2. Battle\n3. End Turn");
 				int option;
 				std::cin >> option;
 				switch (option) {
@@ -239,7 +262,7 @@ void Battle::initBattle() {
 						initBattle();
 					}
 					else {
-						LOG("You have no creatures to attack with!");
+						Log("You have no creatures to attack with!");
 					}
 					break;
 				case 3:

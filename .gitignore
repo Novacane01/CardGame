@@ -3,3 +3,5 @@
 .vcxproj.user
 Debug/
 .sln
+.vs
+.suo
