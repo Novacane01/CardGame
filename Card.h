@@ -25,7 +25,7 @@ public:
 	virtual void Update(sf::RenderWindow &, float);
 	void Draw(sf::RenderWindow &);
 	void setCardInfo(); 
-	static void updateCardInfo(sf::RenderWindow *, Card *card = 0);
+	static void viewCard(sf::RenderWindow *, Card *card = 0);
 	static sf::RectangleShape cardInfoDisplay;
 	bool viewing;
 	//~Card();

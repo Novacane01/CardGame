@@ -92,7 +92,7 @@ void Card::setCardInfo() {
 	}
 }
 
-void Card::updateCardInfo(sf::RenderWindow *window, Card *card) {
+void Card::viewCard(sf::RenderWindow *window, Card *card) {
 	if (card) {
 		window->draw(cardInfoDisplay);
 		window->draw(card->cardInfo);

@@ -1,5 +1,6 @@
 #include "Battle.h"
 
+//Constructor
 Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player2) {
 
 	setUI();
@@ -23,6 +24,7 @@ Battle::Battle(Player *player1, Player *player2):player1(player1),player2(player
 	player2->setUI();
 }
 
+//Logs text to battle log
 void Battle::Log(std::string string) {
 	std::string tempString = "";
 	std::string tempChars;
@@ -34,6 +36,7 @@ void Battle::Log(std::string string) {
 			if (battleLog.findCharacterPos(i).x >= battleLogBox.getPosition().x + battleLogBox.getSize().x - 50) {
 				tempString = tempString.substr(0, tempString.size() - tempChars.size());
 				tempString += "\n\n";
+				//battleLog.move(sf::Vector2f(0, -10));
 				battleLog.setString(tempString);
 				tempString += tempChars;
 				i += 2;
@@ -42,8 +45,10 @@ void Battle::Log(std::string string) {
 		}
 	}
 	log += tempString + "\n\n";
+	battleLog.move(sf::Vector2f(0, -30));
 }
 
+//Initiates the battle
 void Battle::Start(sf::RenderWindow *window) {
 	std::thread(&Battle::initBattle,this).detach();
 	Card * highlightedCard = nullptr;
@@ -73,38 +78,53 @@ void Battle::Start(sf::RenderWindow *window) {
 					else if (currentPlayer->hand[i]->viewing) {
 						currentPlayer->hand[i]->getCard()->setPosition(sf::Vector2f(currentPlayer->hand[i]->getCard()->getPosition().x, WINDOW_HEIGHT*0.95f));
 						highlightedCard = (highlightedCard == currentPlayer->hand[i])? 0:highlightedCard;
+						highlightedCardPos = (highlightedCard) ? highlightedCardPos : -1;
+					}
+				}
+				for (int i = 0; i < currentPlayer->field.size();i++) {
+					if (currentPlayer->field[i]->getCard()->getGlobalBounds().contains(window->mapPixelToCoords(sf::Mouse::getPosition(*window)))) {
+						highlightedCard = currentPlayer->field[i];
 					}
 				}
 			}
 			if (event.type == sf::Event::MouseButtonPressed) {
 				if (event.mouseButton.button == sf::Mouse::Left) {
-					if (highlightedCard&&phase==PHASE::MAIN) {
+					if (highlightedCard&&highlightedCardPos!=-1&&phase==PHASE::MAIN) {
 						if (currentPlayer->getEnergy() >= highlightedCard->getCost()) {
 							playCard(currentPlayer, highlightedCard, highlightedCardPos);
 						}
 					}
-					if (endTurnButton.getGlobalBounds().contains(window->mapPixelToCoords(sf::Vector2i(sf::Mouse::getPosition(*window))))) {
+					if (endTurnButton.getGlobalBounds().contains(window->mapPixelToCoords(sf::Mouse::getPosition(*window)))) {
 						phase = PHASE::END;
 					}
 				}
 			}
+			if (event.type == sf::Event::MouseWheelScrolled) {
+				if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+					if (battleLogBox.getGlobalBounds().contains(window->mapPixelToCoords(sf::Mouse::getPosition(*window)))) {
+						battleLog.move((signbit(event.mouseWheelScroll.delta) && battleLogBox.getPosition().y <= battleLog.getPosition().y) ? sf::Vector2f(0, 0): sf::Vector2f(0, -event.mouseWheelScroll.delta * 10));
+					}
+				}
+			}
 		}
-		Card::updateCardInfo(window, highlightedCard);
+		Card::viewCard(window, highlightedCard);
 		displayUI(window);
 		window->display();
 	}
 }
 
 //Draws a card from deck
-void Battle::Draw(Player *player) {
+bool Battle::Draw(Player *player) {
 	if (player->tempDeck.size() > 0) {
 		player->hand.push_back(player->tempDeck.back());
 		player->tempDeck.erase(player->tempDeck.end() - 1);
 		player->updateHand();
+		return true;
 	}
 	else {
 		gameIsWon = true;
 	}
+	return false;
 }
 
 //Increments Phase
@@ -204,6 +224,7 @@ void Battle::displayField(Player *player) {
 	}
 }
 
+//Updates battle log
 void Battle::updateLog(sf::RenderWindow *window) {
 	battleLog.setString(log);
 	window->draw(battleLog);
@@ -238,12 +259,16 @@ void Battle::initBattle() {
 
 		if (phase == PHASE::DRAW) {
 			Log("Drawing card...");
-			Draw(currentPlayer);
-			nextPhase();
+			if (Draw(currentPlayer)) {
+				nextPhase();
+			}
+			else {
+				Log(opposingPlayer->getName() + " has won due to deck out!");
+			}
 		}
 		if (phase == PHASE::MAIN) {
 			Log("MAIN PAHSE");
-			Log("Energy:" + std::to_string(currentPlayer->getEnergy()));
+			//Log("Energy:" + std::to_string(currentPlayer->getEnergy()));
 			while (phase == PHASE::MAIN) {
 				sf::sleep(sf::seconds(.5f));
 			}
@@ -266,20 +291,26 @@ void Battle::initBattle() {
 //	window->display();
 //}
 
+//Sets UI for battle
 void Battle::setUI() {
-	battleLogBox.setPosition(WINDOW_WIDTH - battleLogBox.getSize().x, 0);
+	battleLogBox.setPosition(WINDOW_WIDTH - battleLogBox.getSize().x, 20);
+	//battleLogBox.setFillColor(sf::Color::Red);
 	battleLog.setFont(GameManager::font);
-	battleLog.setCharacterSize(10);
-	battleLog.setPosition(sf::Vector2f(battleLogBox.getPosition().x, battleLogBox.getPosition().y + 20));
+	battleLog.setCharacterSize(15);
+	battleLog.setPosition(sf::Vector2f(battleLogBox.getPosition().x, battleLogBox.getPosition().y));
+	battleLogBlocker.setPosition(sf::Vector2f(battleLogBox.getPosition().x, 250));
+	battleLogBlocker.setFillColor(sf::Color::Black);
+	endTurnButton.setCharacterSize(15);
 	endTurnButton.setFont(GameManager::font);
 	endTurnButton.setString("End Turn");
-	endTurnButton.setCharacterSize(15);
-	endTurnButton.setPosition(sf::Vector2f(WINDOW_WIDTH - endTurnButton.findCharacterPos(8).x-50, WINDOW_HEIGHT / 2));
+	endTurnButton.setPosition(WINDOW_WIDTH - endTurnButton.findCharacterPos(8).x - 50, WINDOW_HEIGHT / 2);
 }
 
+//Displays battle UI
 void Battle::displayUI(sf::RenderWindow *window) {
+	updateLog(window);
+	window->draw(battleLogBlocker);
 	currentPlayer->drawHand(window);
 	currentPlayer->displayUI(window);
-	updateLog(window);
 	window->draw(endTurnButton);
 }

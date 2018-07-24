@@ -46,7 +46,6 @@ void GameManager::Start() {
 		window.clear();
 		window.display();
 	}
-
 }
 
 GameManager::~GameManager() {
